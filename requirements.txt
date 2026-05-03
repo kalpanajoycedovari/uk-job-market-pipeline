@@ -1,0 +1,4 @@
+azure-storage-blob
+requests
+pandas
+python-dotenv
