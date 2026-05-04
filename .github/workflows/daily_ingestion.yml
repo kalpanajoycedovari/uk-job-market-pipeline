@@ -1,0 +1,37 @@
+name: Daily UK Jobs Ingestion
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # Every day at 9am UTC
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install azure-storage-blob requests pandas
+
+      - name: Run Reed ingestion
+        env:
+          AZURE_STORAGE_ACCOUNT_NAME: ukjobmarketlake
+          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+          REED_API_KEY: ${{ secrets.REED_API_KEY }}
+        run: python ingestion/reed_ingest.py
+
+      - name: Run Adzuna ingestion
+        env:
+          AZURE_STORAGE_ACCOUNT_NAME: ukjobmarketlake
+          AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_API_KEY: ${{ secrets.ADZUNA_API_KEY }}
+        run: python ingestion/adzuna_ingest.py
